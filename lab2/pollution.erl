@@ -11,7 +11,7 @@
   get_moving_mean/4
 ]).
 
-%A = #{ {"Crackow", {21, 37}} => [#{time => {{2026,3,25}, {20,10,31}}, type => "PM10", value => 100.0}]}
+%A = #{ {"Krakow", {21, 37}} => [#{time => {{2026,3,25}, {20,10,31}}, type => "PM10", value => 100.0}]}
 
 % Erlang jest językiem bez statycznego typowania, więc sprawdzanie każdej wprowadzonej zmiennej do funkcji czy jest stringiem na przykład, zrobiłoby
 % ten kod absolutnie nieczytelnym, dlatego sprawdzamy tylko istnienie. 
