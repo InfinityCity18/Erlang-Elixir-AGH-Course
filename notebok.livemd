@@ -1,0 +1,64 @@
+# Untitled notebook
+
+## Section
+
+```elixir
+file_path = "/home/hyperbarq/Documents/erlang/AirlyData-ALL-50k.csv"
+
+file_content = File.read!(file_path)
+file_content 
+|> String.split("\n")
+|> Enum.map(&String.split(&1, ";"))
+|> Enum.filter(fn line ->
+  case line do
+    [_d,_t,_v,_i,_s,_c] -> false
+    _ -> true 
+  end
+end)
+```
+
+```elixir
+defmodule Parser do 
+  def parse_line(line) do
+    [date, type, value, id, stationname, coords] = 
+      line 
+      |> String.split(";")
+    %{datetime: Kernel.elem(DateTime.from_iso8601(date), 1),
+      location: List.to_tuple(coords |> String.split(",") |> Enum.map(&String.to_float/1)), 
+      stationId: String.to_integer(id),
+      stationName: stationname,
+      pollutionType: type, 
+      pollutionLevel: String.to_float(value)
+    }
+  end
+end
+
+file_content = File.read!(file_path)
+file_content 
+|> String.split("\n")
+|> Enum.filter(fn a -> (a != "") end)
+|> Enum.map(&Parser.parse_line/1)
+|> Enum.uniq_by(fn a -> {a.stationId, a.stationName} end)
+
+
+
+```
+
+<!-- livebook:{"output_size":"full"} -->
+
+```elixir
+Code.append_path("/home/hyperbarq/Documents/erlang/pollution/_build/default/lib/pollution/ebin")
+Application.start(:pollution)
+
+file_content = File.read!(file_path)
+file_content 
+|> String.split("\n")
+|> Enum.filter(fn a -> (a != "") end)
+|> Enum.map(&Parser.parse_line/1)
+|> Enum.uniq_by(fn a -> {a.stationId, a.stationName} end)
+|> Enum.each(
+  fn %{stationName: name, location: coords, datetime: dt, pollutionType: type, pollutionLevel: level} -> 
+    :pollution_gen_server.add_station(name, coords)
+    :pollution_gen_server.add_value(name, dt, type, level)
+  end)
+```

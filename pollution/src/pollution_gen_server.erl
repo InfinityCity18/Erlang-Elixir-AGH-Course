@@ -62,15 +62,18 @@ handle_call({Req, Args0}, _From, State) ->
             get_moving_mean_msg ->
                 {get, apply(pollution, get_moving_mean, Args)}
         end,
-
     {Reply, NewState} =
         case Result of
-            {_, {error, Msg}} ->
-                {{error, Msg}, State};
-            {get, Res} ->
-                {Res, State};
-            {modify, Res} ->
-                {ok, Res}
+            {get, {error, ErrorMsg}} ->
+                {{error, ErrorMsg}, State};
+            {get, {value, Value}} ->
+                {Value, State};
+            {modify, {monitor, NowyState}} ->
+                {ok, NowyState};
+            {modify, {error, ErrorMsg}} ->
+                {{error, ErrorMsg}, State};
+            _ ->
+                {gowno, State}
         end,
 
     {reply, Reply, NewState}.
