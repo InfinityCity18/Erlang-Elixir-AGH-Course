@@ -49,16 +49,38 @@ file_content
 ```elixir
 Code.append_path("/home/hyperbarq/Documents/erlang/pollution/_build/default/lib/pollution/ebin")
 Application.start(:pollution)
-
 file_content = File.read!(file_path)
+m = file_content 
+|> String.split("\n")
+|> Enum.filter(fn a -> (a != "") end)
+|> Enum.map(&Parser.parse_line/1)
+
+IO.puts(((fn ->
+m
+|> Enum.each(
+  fn %{stationName: name, location: coords, datetime: dt, pollutionType: type, pollutionLevel: level} -> 
+    :pollution_gen_server.add_station(name, coords)
+  end) 
+  end
+)
+|> :timer.tc 
+|> elem(0) )/ 1000000)
+
+IO.puts(((fn ->
 file_content 
 |> String.split("\n")
 |> Enum.filter(fn a -> (a != "") end)
 |> Enum.map(&Parser.parse_line/1)
-|> Enum.uniq_by(fn a -> {a.stationId, a.stationName} end)
 |> Enum.each(
   fn %{stationName: name, location: coords, datetime: dt, pollutionType: type, pollutionLevel: level} -> 
-    :pollution_gen_server.add_station(name, coords)
     :pollution_gen_server.add_value(name, dt, type, level)
-  end)
+  end) 
+  end
+)
+|> :timer.tc 
+|> elem(0) )/ 1000000)
+
+fn -> :pollution_gen_server.get_daily_mean("PM25",{2024, 2, 10}) end
+|> :timer.tc 
+|> elem(0)
 ```
